@@ -12,19 +12,21 @@ static std::string passwd = "123456";
 
 
 // 数据库类，封装了数据库操作
-class MySql
+class MySQL
 {
 public:
     // 初始化数据库连接
-    MySql();
+    MySQL();
     // 释放连接资源
-    ~MySql();
+    ~MySQL();
     // 连接数据库
     bool connect();
     // 更新数据库
     bool update(std::string sql);
     // 查询数据库
     MYSQL_RES* query(std::string sql);
+    // 获取数据库连接
+    MYSQL* getConnection();
 private:
     MYSQL* _conn;
 };

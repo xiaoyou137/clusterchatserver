@@ -21,9 +21,27 @@ using namespace std::placeholders;
     }
 
     // 处理注册业务
-    void ChatService::reg(const TcpConnectionPtr&, json& js, Timestamp)
+    void ChatService::reg(const TcpConnectionPtr& conn, json& js, Timestamp time)
     {
-        LOG_INFO << "do reg service!!!";
+        std::string name = js["name"];
+        std::string passwd = js["passwd"];
+        User user(name, passwd);
+        // 向user表中插入数据（注册用户数据）
+        bool state = _userModel.insert(user);
+        json response;
+        if(state)
+        {// 注册成功，构建返回json
+            response["msgid"] = REG_MSG_ACK;
+            response["errno"] = 0;
+            response["id"] = user.getId();
+        }else{
+            response["msgid"] = REG_MSG_ACK;
+            response["errno"] = 1;
+            response["errmsg"] = "reg failed!";
+        }
+
+        // 发送响应消息给客户端
+        conn->send(response.dump());
     }
 
     // 注册msgid对应的业务处理函数

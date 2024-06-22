@@ -7,7 +7,7 @@
 class User
 {
 public:
-    User(int id = -1, std::string name = "", std::string passwd = "", std::string state = "offline")
+    User(std::string name = "", std::string passwd = "", std::string state = "offline", int id = -1)
         : id_(id), name_(name), passwd_(passwd), state_(state)
     {
     }

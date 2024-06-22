@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <functional>
 #include "json.hpp"
+#include "usermodel.hpp"
 
 
 using namespace muduo::net;
@@ -33,6 +34,9 @@ private:
     ChatService& operator=(const ChatService&) = delete;
     // 存储msgid和其对应的业务处理方法
     std::unordered_map<int, MsgHandler> _msgHandlerMap;
+
+    // 组合user表操作类
+    UserModel _userModel;
 };
 
 #endif

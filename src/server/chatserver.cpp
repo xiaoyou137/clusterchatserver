@@ -2,6 +2,7 @@
 #include "chatservice.hpp"
 #include "json.hpp"
 #include <string>
+#include <iostream>
 
 using namespace std::placeholders;
 using json = nlohmann::json;
@@ -46,6 +47,7 @@ void ChatServer::onMessage(const TcpConnectionPtr & conn,
 {
     // 获取消息缓冲区所有字符
     std::string sbuf = buffer->retrieveAllAsString();
+    //if(sbuf[0] == '^') return;
     // 利用json进行反序列化
     json js = json::parse(sbuf);
     // 将网络I/O与业务模块解耦，一个js["msgid"]对应一个服务器service处理函数（msgHandler）

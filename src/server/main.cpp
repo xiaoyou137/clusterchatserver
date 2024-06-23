@@ -1,9 +1,11 @@
 #include "chatserver.hpp"
 
+const string saddr = "192.168.1.131";
+
 int main()
 {
     EventLoop loop;
-    InetAddress addr("127.0.0.1", 6000);
+    InetAddress addr(saddr.c_str(), 6000);
 
     ChatServer server(&loop, addr, "chatserver");
     server.start();

@@ -28,6 +28,9 @@ public:
     // 获取msgid对应的处理函数
     MsgHandler getHandler(int msgid);
 
+    // 处理客户端异常退出
+    void clientClosedException(const TcpConnectionPtr& conn);
+
 private:
     // 作为单例类，私有化构造函数，删除拷贝构造和赋值运算符
     ChatService();

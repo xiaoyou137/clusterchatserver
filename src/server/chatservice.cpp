@@ -55,7 +55,7 @@ void ChatService::login(const TcpConnectionPtr &conn, json &js, Timestamp time)
                 std::lock_guard<std::mutex> lock(_connMutex);
                 _userConnMap.insert({id, conn});
             }
-            
+
             response["msgid"] = LOGIN_MSG_ACK;
             response["errno"] = 0;
             response["id"] = user.getId();
@@ -113,5 +113,31 @@ MsgHandler ChatService::getHandler(int msgid)
     else
     {
         return _msgHandlerMap[msgid];
+    }
+}
+
+// 处理客户端异常退出
+void ChatService::clientClosedException(const TcpConnectionPtr &conn)
+{
+    User user;
+    {
+        std::lock_guard<std::mutex> lock(_connMutex);
+        for(auto it = _userConnMap.begin(); it != _userConnMap.end(); it++)
+        {
+            if(it->second == conn)
+            {
+                // 设置user id
+                user.setId(it->first);
+                _userConnMap.erase(it);
+                break;
+            }
+        }
+    }
+
+    if(user.getId() != -1)
+    {
+        // 重置用户状态为offline
+        user.setState("offline");
+        _userModel.updatestate(user);
     }
 }

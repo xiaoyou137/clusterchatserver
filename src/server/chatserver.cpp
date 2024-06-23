@@ -32,7 +32,10 @@ void ChatServer::onConnection(const TcpConnectionPtr & conn)
 {
     if(!conn->connected()) // 如果链接断开
     {
-        conn->shutdown(); // 释放链接资源
+        // 处理客户端异常退出的情况
+        ChatService::instance()->clientClosedException(conn);
+        // 释放链接资源
+        conn->shutdown(); 
     }
 }
 

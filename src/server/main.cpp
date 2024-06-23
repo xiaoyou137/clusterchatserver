@@ -1,6 +1,6 @@
 #include "chatserver.hpp"
 
-const string saddr = "192.168.1.131";
+const string saddr = "127.0.0。1";
 
 int main()
 {

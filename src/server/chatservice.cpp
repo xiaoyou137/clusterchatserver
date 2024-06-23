@@ -60,6 +60,15 @@ void ChatService::login(const TcpConnectionPtr &conn, json &js, Timestamp time)
             response["errno"] = 0;
             response["id"] = user.getId();
             response["name"] = user.getName();
+
+            // 检查离线消息，并发送给用户
+            std::vector<std::string> vec = _offlineMsgModel.query(id);
+            if(!vec.empty())
+            {
+                response["offlinemsg"] = vec;
+                // 删除数据库中的离线消息
+                _offlineMsgModel.remove(id);
+            }
         }
     }
     conn->send(response.dump());
@@ -91,11 +100,30 @@ void ChatService::reg(const TcpConnectionPtr &conn, json &js, Timestamp time)
     conn->send(response.dump());
 }
 
+// 一对一聊天
+void ChatService::onechat(const TcpConnectionPtr & conn, json &js, Timestamp time)
+{
+    int toid = js["to"].get<int>();
+    {
+        std::lock_guard<std::mutex> lock(_connMutex);
+        auto it = _userConnMap.find(toid);
+        if(it != _userConnMap.end())
+        {
+            // toid用户在线,直接转发消息
+            it->second->send(js.dump());
+            return;
+        }
+    }
+    // toid用户不在线，离线存储消息
+    _offlineMsgModel.insert(toid, js.dump());
+}
+
 // 注册msgid对应的业务处理函数
 ChatService::ChatService()
 {
     _msgHandlerMap.insert({LOGIN_MSG, std::bind(&ChatService::login, this, _1, _2, _3)});
     _msgHandlerMap.insert({REG_MSG, std::bind(&ChatService::reg, this, _1, _2, _3)});
+    _msgHandlerMap.insert({ONE_CHAT_MSG, std::bind(&ChatService::onechat, this, _1, _2, _3)});
 }
 
 // 获取msgid对应的处理函数
@@ -122,9 +150,9 @@ void ChatService::clientClosedException(const TcpConnectionPtr &conn)
     User user;
     {
         std::lock_guard<std::mutex> lock(_connMutex);
-        for(auto it = _userConnMap.begin(); it != _userConnMap.end(); it++)
+        for (auto it = _userConnMap.begin(); it != _userConnMap.end(); it++)
         {
-            if(it->second == conn)
+            if (it->second == conn)
             {
                 // 设置user id
                 user.setId(it->first);
@@ -134,7 +162,7 @@ void ChatService::clientClosedException(const TcpConnectionPtr &conn)
         }
     }
 
-    if(user.getId() != -1)
+    if (user.getId() != -1)
     {
         // 重置用户状态为offline
         user.setState("offline");

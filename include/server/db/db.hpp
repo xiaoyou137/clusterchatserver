@@ -10,6 +10,7 @@ static std::string db = "chat";
 static std::string user = "root";
 static std::string passwd = "123456";
 
+constexpr int SQL_LENTH = 1024;
 
 // 数据库类，封装了数据库操作
 class MySQL

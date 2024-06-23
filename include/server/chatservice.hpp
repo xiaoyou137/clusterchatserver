@@ -7,6 +7,7 @@
 #include <mutex>
 #include "json.hpp"
 #include "usermodel.hpp"
+#include "offlinemsgmodel.hpp"
 
 using namespace muduo::net;
 using namespace muduo;
@@ -25,6 +26,11 @@ public:
     void login(const TcpConnectionPtr &, json &js, Timestamp);
     // 处理注册业务
     void reg(const TcpConnectionPtr &, json &js, Timestamp);
+    // 一对一聊天
+    void onechat(const TcpConnectionPtr &, json &js, Timestamp);
+    
+    
+    
     // 获取msgid对应的处理函数
     MsgHandler getHandler(int msgid);
 
@@ -44,6 +50,9 @@ private:
 
     // 互斥量，保证对_userConnMap;操作的线程安全
     std::mutex _connMutex;
+
+    // 存储离线消息
+    OfflineMsgModel _offlineMsgModel;
 
     // 组合user表操作类
     UserModel _userModel;

@@ -2,7 +2,6 @@
 #include "db.hpp"
 #include <iostream>
 
-constexpr int SQL_LENTH = 1024;
 
 bool UserModel::insert(User &user)
 {

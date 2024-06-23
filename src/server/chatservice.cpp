@@ -24,7 +24,7 @@ void ChatService::login(const TcpConnectionPtr &conn, json &js, Timestamp time)
 
     json response;
     if (user.getId() == -1)
-    {
+    { // 用户不存在
         response["msgid"] = LOGIN_MSG_ACK;
         response["errno"] = 1;
         response["errmsg"] = "该用户不存在!";
@@ -32,23 +32,34 @@ void ChatService::login(const TcpConnectionPtr &conn, json &js, Timestamp time)
     else
     {
         if (user.getState() == "online")
-        {
+        { // 重复登录
             response["msgid"] = LOGIN_MSG_ACK;
             response["errno"] = 2;
             response["errmsg"] = "该用户已经登录!";
-        }else if(user.getPasswd() != passwd)
-        {
+        }
+        else if (user.getPasswd() != passwd)
+        { // 密码错误
             response["msgid"] = LOGIN_MSG_ACK;
             response["errno"] = 3;
             response["errmsg"] = "密码错误!";
-        }else{
+        }
+        else
+        { // 用户登录成功
+
+            // 更新状态为online
+            user.setState("online");
+            _userModel.updatestate(user);
+
+            // 保存用户连接
+            {
+                std::lock_guard<std::mutex> lock(_connMutex);
+                _userConnMap.insert({id, conn});
+            }
+            
             response["msgid"] = LOGIN_MSG_ACK;
             response["errno"] = 0;
             response["id"] = user.getId();
             response["name"] = user.getName();
-
-            user.setState("online");
-            _userModel.updatestate(user);
         }
     }
     conn->send(response.dump());

@@ -28,6 +28,12 @@ public:
     void reg(const TcpConnectionPtr &, json &js, Timestamp);
     // 一对一聊天
     void onechat(const TcpConnectionPtr &, json &js, Timestamp);
+
+    // 处理服务器异常退出，重置业务
+    void reset()
+    {
+        _userModel.reset();
+    }
     
     
     

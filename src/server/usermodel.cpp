@@ -2,7 +2,6 @@
 #include "db.hpp"
 #include <iostream>
 
-
 bool UserModel::insert(User &user)
 {
     // 1. 组装sql语句
@@ -62,7 +61,7 @@ bool UserModel::updatestate(User user)
 {
     // 1. 组装sql语句
     char sql[SQL_LENTH] = {0};
-    sprintf(sql, "update user set state = '%s' where id = %d",user.getState().c_str(), user.getId());
+    sprintf(sql, "update user set state = '%s' where id = %d", user.getState().c_str(), user.getId());
 
     // 使用MySQL对象，执行sql语句
     MySQL mysql;
@@ -76,4 +75,18 @@ bool UserModel::updatestate(User user)
     }
 
     return false;
+}
+
+// 重置用户状态
+void UserModel::reset()
+{
+    // 1. 组装sql语句
+    char sql[SQL_LENTH] = "update user set state = 'offline' where state = 'online'";
+
+    // 使用MySQL对象，执行sql语句
+    MySQL mysql;
+    if (mysql.connect())
+    {
+        mysql.update(sql);
+    }
 }

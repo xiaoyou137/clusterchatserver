@@ -63,11 +63,18 @@ void ChatService::login(const TcpConnectionPtr &conn, json &js, Timestamp time)
 
             // 检查离线消息，并发送给用户
             std::vector<std::string> vec = _offlineMsgModel.query(id);
-            if(!vec.empty())
+            if (!vec.empty())
             {
                 response["offlinemsg"] = vec;
                 // 删除数据库中的离线消息
                 _offlineMsgModel.remove(id);
+            }
+
+            // 返回好友列表
+            vec = _friendModel.query(id);
+            if(!vec.empty())
+            {
+                response["friend"] = vec;
             }
         }
     }
@@ -101,13 +108,13 @@ void ChatService::reg(const TcpConnectionPtr &conn, json &js, Timestamp time)
 }
 
 // 一对一聊天
-void ChatService::onechat(const TcpConnectionPtr & conn, json &js, Timestamp time)
+void ChatService::onechat(const TcpConnectionPtr &conn, json &js, Timestamp time)
 {
     int toid = js["to"].get<int>();
     {
         std::lock_guard<std::mutex> lock(_connMutex);
         auto it = _userConnMap.find(toid);
-        if(it != _userConnMap.end())
+        if (it != _userConnMap.end())
         {
             // toid用户在线,直接转发消息
             it->second->send(js.dump());
@@ -118,12 +125,22 @@ void ChatService::onechat(const TcpConnectionPtr & conn, json &js, Timestamp tim
     _offlineMsgModel.insert(toid, js.dump());
 }
 
+// 添加好友
+void ChatService::addfriend(const TcpConnectionPtr& conn, json &js, Timestamp time)
+{
+    int userid = js["id"].get<int>();
+    int friendid = js["friendid"].get<int>();
+
+    _friendModel.insert(userid, friendid);
+}
+
 // 注册msgid对应的业务处理函数
 ChatService::ChatService()
 {
     _msgHandlerMap.insert({LOGIN_MSG, std::bind(&ChatService::login, this, _1, _2, _3)});
     _msgHandlerMap.insert({REG_MSG, std::bind(&ChatService::reg, this, _1, _2, _3)});
     _msgHandlerMap.insert({ONE_CHAT_MSG, std::bind(&ChatService::onechat, this, _1, _2, _3)});
+    _msgHandlerMap.insert({ADD_FRIEND_MSG, std::bind(&ChatService::addfriend, this, _1, _2, _3)});
 }
 
 // 获取msgid对应的处理函数

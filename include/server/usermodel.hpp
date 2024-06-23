@@ -8,6 +8,10 @@ class UserModel
 {
 public:
     bool insert(User& user);
+    // 用id查询用户信息
+    User query(int id);
+    // 更新用户状态
+    bool updatestate(User user);
 };
 
 #endif

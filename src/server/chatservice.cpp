@@ -86,7 +86,7 @@ void ChatService::reg(const TcpConnectionPtr &conn, json &js, Timestamp time)
 {
     std::string name = js["name"];
     std::string passwd = js["passwd"];
-    User user(name, passwd);
+    User user(-1, name, "offline", passwd);
     // 向user表中插入数据（注册用户数据）
     bool state = _userModel.insert(user);
     json response;

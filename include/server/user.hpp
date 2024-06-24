@@ -7,7 +7,7 @@
 class User
 {
 public:
-    User(std::string name = "", std::string passwd = "", std::string state = "offline", int id = -1)
+    User(int id = -1, std::string name = "", std::string state = "offline", std::string passwd = "")
         : id_(id), name_(name), passwd_(passwd), state_(state)
     {
     }
@@ -52,7 +52,7 @@ public:
         return state_;
     }
 
-private:
+protected:
     int id_; // 用户id， 由插入数据库时，作为主键自动分配
     std::string name_;
     std::string passwd_;

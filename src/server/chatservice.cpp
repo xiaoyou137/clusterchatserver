@@ -4,8 +4,12 @@
 #include <muduo/base/Logging.h>
 
 using namespace muduo;
-
 using namespace std::placeholders;
+
+using std::lock_guard;
+using std::mutex;
+using std::vector;
+using std::string;
 
 // 单例类，获取实例对象
 ChatService *ChatService::instance()
@@ -52,7 +56,7 @@ void ChatService::login(const TcpConnectionPtr &conn, json &js, Timestamp time)
 
             // 保存用户连接
             {
-                std::lock_guard<std::mutex> lock(_connMutex);
+                std::lock_guard<mutex> lock(_connMutex);
                 _userConnMap.insert({id, conn});
             }
 
@@ -62,7 +66,7 @@ void ChatService::login(const TcpConnectionPtr &conn, json &js, Timestamp time)
             response["name"] = user.getName();
 
             // 检查离线消息，并发送给用户
-            std::vector<std::string> vec = _offlineMsgModel.query(id);
+            vector<string> vec = _offlineMsgModel.query(id);
             if (!vec.empty())
             {
                 response["offlinemsg"] = vec;
@@ -72,7 +76,7 @@ void ChatService::login(const TcpConnectionPtr &conn, json &js, Timestamp time)
 
             // 返回好友列表
             vec = _friendModel.query(id);
-            if(!vec.empty())
+            if (!vec.empty())
             {
                 response["friend"] = vec;
             }
@@ -84,8 +88,8 @@ void ChatService::login(const TcpConnectionPtr &conn, json &js, Timestamp time)
 // 处理注册业务
 void ChatService::reg(const TcpConnectionPtr &conn, json &js, Timestamp time)
 {
-    std::string name = js["name"];
-    std::string passwd = js["passwd"];
+    string name = js["name"];
+    string passwd = js["passwd"];
     User user(-1, name, "offline", passwd);
     // 向user表中插入数据（注册用户数据）
     bool state = _userModel.insert(user);
@@ -112,7 +116,7 @@ void ChatService::onechat(const TcpConnectionPtr &conn, json &js, Timestamp time
 {
     int toid = js["to"].get<int>();
     {
-        std::lock_guard<std::mutex> lock(_connMutex);
+        std::lock_guard<mutex> lock(_connMutex);
         auto it = _userConnMap.find(toid);
         if (it != _userConnMap.end())
         {
@@ -126,12 +130,60 @@ void ChatService::onechat(const TcpConnectionPtr &conn, json &js, Timestamp time
 }
 
 // 添加好友
-void ChatService::addfriend(const TcpConnectionPtr& conn, json &js, Timestamp time)
+void ChatService::addfriend(const TcpConnectionPtr &conn, json &js, Timestamp time)
 {
     int userid = js["id"].get<int>();
     int friendid = js["friendid"].get<int>();
 
     _friendModel.insert(userid, friendid);
+}
+
+// 创建群组
+void ChatService::createGroup(const TcpConnectionPtr &, json &js, Timestamp)
+{
+    int userid = js["id"].get<int>();
+    string name = js["groupname"];
+    string desc = js["groupdesc"];
+
+    Group group(-1, name, desc);
+    if(_groupModel.createGroup(group))
+    {
+        // 群组创建成功
+        // 添加创建者
+        _groupModel.addGroup(userid, group.getId(), CREATOR);
+    }
+}
+
+// 添加群组
+void ChatService::addGroup(const TcpConnectionPtr &, json &js, Timestamp)
+{
+    int userid = js["id"].get<int>();
+    int groupid = js["groupid"].get<int>();
+    _groupModel.addGroup(userid, groupid, NORMAL);
+}
+
+// 群组聊天
+void ChatService::groupChat(const TcpConnectionPtr &, json &js, Timestamp)
+{
+    int userid = js["id"].get<int>();
+    int groupid = js["groupid"].get<int>();
+
+    vector<int> groupusers = _groupModel.queryGroupUsers(userid, groupid);
+    lock_guard<mutex> lock(_connMutex);
+    for(auto userid : groupusers)
+    {
+        auto it = _userConnMap.find(userid);
+        if(it != _userConnMap.end())
+        {
+            // 挨个向群组用户推送消息
+            it->second->send(js.dump());
+        }
+        else
+        {
+            // 离线存储消息
+            _offlineMsgModel.insert(userid, js.dump());
+        }
+    }
 }
 
 // 注册msgid对应的业务处理函数
@@ -141,6 +193,9 @@ ChatService::ChatService()
     _msgHandlerMap.insert({REG_MSG, std::bind(&ChatService::reg, this, _1, _2, _3)});
     _msgHandlerMap.insert({ONE_CHAT_MSG, std::bind(&ChatService::onechat, this, _1, _2, _3)});
     _msgHandlerMap.insert({ADD_FRIEND_MSG, std::bind(&ChatService::addfriend, this, _1, _2, _3)});
+    _msgHandlerMap.insert({CREATE_GROUP_MSG, std::bind(&ChatService::createGroup, this, _1, _2, _3)});
+    _msgHandlerMap.insert({ADD_GROUP_MSG, std::bind(&ChatService::addGroup, this, _1, _2, _3)});
+    _msgHandlerMap.insert({GROUP_CHAT_MSG, std::bind(&ChatService::groupChat, this, _1, _2, _3)});
 }
 
 // 获取msgid对应的处理函数
@@ -166,7 +221,7 @@ void ChatService::clientClosedException(const TcpConnectionPtr &conn)
 {
     User user;
     {
-        std::lock_guard<std::mutex> lock(_connMutex);
+        lock_guard<mutex> lock(_connMutex);
         for (auto it = _userConnMap.begin(); it != _userConnMap.end(); it++)
         {
             if (it->second == conn)

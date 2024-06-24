@@ -9,6 +9,8 @@
 #include "usermodel.hpp"
 #include "offlinemsgmodel.hpp"
 #include "friendmodel.hpp"
+#include "groupmodel.hpp"
+
 
 using namespace muduo::net;
 using namespace muduo;
@@ -31,6 +33,12 @@ public:
     void onechat(const TcpConnectionPtr &, json &js, Timestamp);
     // 添加好友
     void addfriend(const TcpConnectionPtr &, json &js, Timestamp);
+    // 创建群组
+    void createGroup(const TcpConnectionPtr &, json &js, Timestamp);
+    // 添加群组
+    void addGroup(const TcpConnectionPtr &, json &js, Timestamp);
+    // 群组聊天
+    void groupChat(const TcpConnectionPtr &, json &js, Timestamp);
 
     // 处理服务器异常退出，重置业务
     void reset()
@@ -66,6 +74,8 @@ private:
     UserModel _userModel;
     // friend操作类
     FriendModel _friendModel;
+    // 群组操作类
+    GroupModel _groupModel;
 };
 
 #endif

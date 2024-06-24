@@ -8,6 +8,9 @@
 using std::string;
 using std::vector;
 
+const string CREATOR = "creator";
+const string NORMAL = "normal";
+
 class GroupModel 
 {
 public:

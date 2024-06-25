@@ -8,8 +8,8 @@ using namespace std::placeholders;
 
 using std::lock_guard;
 using std::mutex;
-using std::vector;
 using std::string;
+using std::vector;
 
 // 单例类，获取实例对象
 ChatService *ChatService::instance()
@@ -146,7 +146,7 @@ void ChatService::createGroup(const TcpConnectionPtr &, json &js, Timestamp)
     string desc = js["groupdesc"];
 
     Group group(-1, name, desc);
-    if(_groupModel.createGroup(group))
+    if (_groupModel.createGroup(group))
     {
         // 群组创建成功
         // 添加创建者
@@ -170,10 +170,10 @@ void ChatService::groupChat(const TcpConnectionPtr &, json &js, Timestamp)
 
     vector<int> groupusers = _groupModel.queryGroupUsers(userid, groupid);
     lock_guard<mutex> lock(_connMutex);
-    for(auto userid : groupusers)
+    for (auto userid : groupusers)
     {
         auto it = _userConnMap.find(userid);
-        if(it != _userConnMap.end())
+        if (it != _userConnMap.end())
         {
             // 挨个向群组用户推送消息
             it->second->send(js.dump());
@@ -216,6 +216,28 @@ MsgHandler ChatService::getHandler(int msgid)
     }
 }
 
+// 退出登录
+void ChatService::logout(const TcpConnectionPtr &, json &js, Timestamp)
+{
+    int userid = js["id"].get<int>();
+    {
+        lock_guard<mutex> lock(_connMutex);
+        for (auto it = _userConnMap.begin(); it != _userConnMap.end(); it++)
+        {
+            if (it->first == userid)
+            {
+                // 删除用户连接
+                _userConnMap.erase(it);
+                break;
+            }
+        }
+    }
+
+        // 重置用户状态为offline
+        User user(userid, "", "offline", "");
+        _userModel.updatestate(user);
+
+}
 // 处理客户端异常退出
 void ChatService::clientClosedException(const TcpConnectionPtr &conn)
 {

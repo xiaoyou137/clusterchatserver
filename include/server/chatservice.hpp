@@ -39,6 +39,8 @@ public:
     void addGroup(const TcpConnectionPtr &, json &js, Timestamp);
     // 群组聊天
     void groupChat(const TcpConnectionPtr &, json &js, Timestamp);
+    // 退出登录
+    void logout(const TcpConnectionPtr &, json &js, Timestamp);
 
     // 处理服务器异常退出，重置业务
     void reset()

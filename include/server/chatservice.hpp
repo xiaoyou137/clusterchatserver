@@ -10,7 +10,7 @@
 #include "offlinemsgmodel.hpp"
 #include "friendmodel.hpp"
 #include "groupmodel.hpp"
-
+#include "redis.hpp"
 
 using namespace muduo::net;
 using namespace muduo;
@@ -47,14 +47,14 @@ public:
     {
         _userModel.reset();
     }
-    
-    
-    
+
     // 获取msgid对应的处理函数
     MsgHandler getHandler(int msgid);
 
     // 处理客户端异常退出
-    void clientClosedException(const TcpConnectionPtr& conn);
+    void clientClosedException(const TcpConnectionPtr &conn);
+
+    void handleMessageOnSubscribe(int id, string msg);
 
 private:
     // 作为单例类，私有化构造函数，删除拷贝构造和赋值运算符
@@ -78,6 +78,8 @@ private:
     FriendModel _friendModel;
     // 群组操作类
     GroupModel _groupModel;
+    // redis中间件
+    Redis _redis;
 };
 
 #endif

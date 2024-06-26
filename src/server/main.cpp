@@ -1,6 +1,7 @@
 #include "chatserver.hpp"
 #include "chatservice.hpp"
 #include <signal.h>
+#include <iostream>
 
 const string saddr = "127.0.0。1";
 
@@ -11,13 +12,20 @@ void resetHandler(int)
     exit(0);
 }
 
-int main()
+int main(int argc, char* argv[])
 {
+
+    if(argc < 2)
+    {
+        std::cout << "usage: ChatServer <port>" << std::endl;
+    }
+
+    int port = atoi(argv[1]);
 
     signal(SIGINT, resetHandler);
     
     EventLoop loop;
-    InetAddress addr(saddr.c_str(), 6000);
+    InetAddress addr(saddr.c_str(), port);
 
     ChatServer server(&loop, addr, "chatserver");
     server.start();

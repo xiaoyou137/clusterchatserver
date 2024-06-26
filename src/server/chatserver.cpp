@@ -4,6 +4,8 @@
 #include <string>
 #include <iostream>
 
+#include <muduo/base/Logging.h>
+
 using namespace std::placeholders;
 using json = nlohmann::json;
 

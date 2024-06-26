@@ -78,7 +78,17 @@ void ChatService::login(const TcpConnectionPtr &conn, json &js, Timestamp time)
             vec = _friendModel.query(id);
             if (!vec.empty())
             {
-                response["friend"] = vec;
+                response["friends"] = vec;
+            }
+
+            // 返回群组列表
+            vector<Group> groups = _groupModel.queryGroups(id);
+            if(!groups.empty())
+            {
+                for(auto& group : groups)
+                {
+                    response["groups"].push_back(group.toJson().dump());
+                }
             }
         }
     }
@@ -114,7 +124,7 @@ void ChatService::reg(const TcpConnectionPtr &conn, json &js, Timestamp time)
 // 一对一聊天
 void ChatService::onechat(const TcpConnectionPtr &conn, json &js, Timestamp time)
 {
-    int toid = js["to"].get<int>();
+    int toid = js["toid"].get<int>();
     {
         std::lock_guard<mutex> lock(_connMutex);
         auto it = _userConnMap.find(toid);
@@ -196,6 +206,7 @@ ChatService::ChatService()
     _msgHandlerMap.insert({CREATE_GROUP_MSG, std::bind(&ChatService::createGroup, this, _1, _2, _3)});
     _msgHandlerMap.insert({ADD_GROUP_MSG, std::bind(&ChatService::addGroup, this, _1, _2, _3)});
     _msgHandlerMap.insert({GROUP_CHAT_MSG, std::bind(&ChatService::groupChat, this, _1, _2, _3)});
+    _msgHandlerMap.insert({LOGOUT_MSG, std::bind(&ChatService::logout, this, _1, _2, _3)});
 }
 
 // 获取msgid对应的处理函数

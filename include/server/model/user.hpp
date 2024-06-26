@@ -32,22 +32,22 @@ public:
         state_= state;
     }
 
-    int getId()
+    int getId() const
     {
         return id_;
     }
 
-    std::string getName()
+    std::string getName() const 
     {
         return name_;
     }
 
-    std::string getPasswd()
+    std::string getPasswd() const
     {
         return passwd_;
     }
 
-    std::string getState()
+    std::string getState() const
     {
         return state_;
     }

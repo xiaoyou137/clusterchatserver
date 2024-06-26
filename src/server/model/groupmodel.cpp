@@ -92,7 +92,7 @@ vector<int> GroupModel::queryGroupUsers(int userid, int groupid)
 {
     // 1.组装sql语句
     char sql[SQL_LENTH] = {0};
-    sprintf(sql, "select a.userid from groupuser where goupid = %d and userid != %d",groupid, userid);
+    sprintf(sql, "select userid from groupuser where groupid = %d and userid != %d",groupid, userid);
 
     vector<int> vec;
     // 查询数据库

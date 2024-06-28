@@ -1,5 +1,5 @@
 #include "usermodel.hpp"
-#include "db.hpp"
+#include "connectionpool.hpp"
 #include <iostream>
 
 bool UserModel::insert(User &user)
@@ -10,13 +10,13 @@ bool UserModel::insert(User &user)
             user.getName().c_str(), user.getPasswd().c_str(), user.getState().c_str());
 
     // 使用MySQL对象，执行sql语句
-    MySQL mysql;
-    if (mysql.connect())
+    auto mysql = ConnectionPool::getInstance()->getConnection();
+    if (mysql != nullptr)
     {
-        if (mysql.update(sql))
+        if (mysql->update(sql))
         {
             // 插入成功，获取主键id作为User id
-            user.setId(mysql_insert_id(mysql.getConnection()));
+            user.setId(mysql_insert_id(mysql->getConnection()));
             return true;
         }
     }
@@ -32,10 +32,10 @@ User UserModel::query(int id)
     sprintf(sql, "select * from user where id = %d", id);
 
     // 使用MySQL对象，执行sql语句
-    MySQL mysql;
-    if (mysql.connect())
+    auto mysql = ConnectionPool::getInstance()->getConnection();
+    if (mysql != nullptr)
     {
-        MYSQL_RES *res = mysql.query(sql);
+        MYSQL_RES *res = mysql->query(sql);
         if (res != nullptr)
         {
             MYSQL_ROW row = mysql_fetch_row(res);
@@ -64,10 +64,10 @@ bool UserModel::updatestate(User user)
     sprintf(sql, "update user set state = '%s' where id = %d", user.getState().c_str(), user.getId());
 
     // 使用MySQL对象，执行sql语句
-    MySQL mysql;
-    if (mysql.connect())
+    auto mysql = ConnectionPool::getInstance()->getConnection();
+    if (mysql != nullptr)
     {
-        if (mysql.update(sql))
+        if (mysql->update(sql))
         {
             // 更新成功
             return true;
@@ -84,9 +84,9 @@ void UserModel::reset()
     char sql[SQL_LENTH] = "update user set state = 'offline' where state = 'online'";
 
     // 使用MySQL对象，执行sql语句
-    MySQL mysql;
-    if (mysql.connect())
+    auto mysql = ConnectionPool::getInstance()->getConnection();
+    if (mysql != nullptr)
     {
-        mysql.update(sql);
+        mysql->update(sql);
     }
 }

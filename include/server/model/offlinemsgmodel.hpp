@@ -1,7 +1,7 @@
 #ifndef OFFLINEMSGMODEL_H
 #define OFFLINEMSGMODEL_H
 
-#include "db.hpp"
+#include "connectionpool.hpp"
 #include <vector>
 
 

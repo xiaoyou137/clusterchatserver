@@ -10,11 +10,11 @@ void FriendModel::insert(int userid, int friendid)
     char sql[SQL_LENTH] = {0};
     sprintf(sql, "insert into friend(userid, friendid) values('%d', '%d')", userid, friendid);
 
-    // 使用MySQL对象，执行sql语句
-    MySQL mysql;
-    if (mysql.connect())
+    // 使用ConnectionPool中的mysql连接，执行sql语句
+    auto mysql = ConnectionPool::getInstance()->getConnection();
+    if (mysql != nullptr)
     {
-        mysql.update(sql);
+        mysql->update(sql);
     }
 
     return;
@@ -28,10 +28,11 @@ std::vector<std::string> FriendModel::query(int userid)
     char sql[SQL_LENTH] = {0};
     sprintf(sql, "select a.id,a.name,a.state from user a inner join friend b on b.friendid = a.id where b.userid = %d", userid);
 
-    MySQL mysql;
-    if (mysql.connect())
+    // 使用ConnectionPool中的mysql连接，执行sql语句
+    auto mysql = ConnectionPool::getInstance()->getConnection();
+    if (mysql != nullptr)
     {
-        MYSQL_RES *res = mysql.query(sql);
+        MYSQL_RES *res = mysql->query(sql);
         if (res != nullptr)
         {
             MYSQL_ROW row;
@@ -46,5 +47,6 @@ std::vector<std::string> FriendModel::query(int userid)
             mysql_free_result(res);
         }
     }
+
     return vec;
 }

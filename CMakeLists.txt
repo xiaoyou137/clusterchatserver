@@ -23,10 +23,12 @@ include_directories(${PROJECT_SOURCE_DIR}/include/server)
 include_directories(${PROJECT_SOURCE_DIR}/include/server/db)
 include_directories(${PROJECT_SOURCE_DIR}/include/server/model)
 include_directories(${PROJECT_SOURCE_DIR}/include/server/redis)
-include_directories(${PROJECT_SOURCE_DIR}/thirdparty)
+include_directories(${PROJECT_SOURCE_DIR}/thirdparty/json)
+include_directories(${PROJECT_SOURCE_DIR}/thirdparty/dbconnectionpool/include)
 
 #添加库文件搜索路径
 link_directories(/usr/lib64/mysql/)
+link_directories(${PROJECT_SOURCE_DIR}/thirdparty/dbconnectionpool/lib)
 
 #加载子目录
 add_subdirectory(src)

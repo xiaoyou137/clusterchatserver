@@ -1,7 +1,7 @@
 #ifndef FRIENDMODEL_H
 #define FRIENDMODEL_H
 
-#include "db.hpp"
+#include "connectionpool.hpp"
 #include "user.hpp"
 #include <vector>
 #include <string>

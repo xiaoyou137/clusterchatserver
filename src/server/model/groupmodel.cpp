@@ -1,5 +1,5 @@
 #include "groupmodel.hpp"
-#include "db.hpp"
+#include "connectionpool.hpp"
 
 // 创建群组
 bool GroupModel::createGroup(Group& group)
@@ -9,13 +9,13 @@ bool GroupModel::createGroup(Group& group)
     sprintf(sql, "insert into allgroup(groupname, groupdesc) values('%s', '%s')", group.getName().c_str(), group.getDesc().c_str());
 
     // 更新数据库
-    MySQL mysql;
-    if(mysql.connect())
+    auto mysql = ConnectionPool::getInstance()->getConnection();
+    if(mysql != nullptr)
     {
-        if(mysql.update(sql))
+        if(mysql->update(sql))
         {
             // 获取并设置group的主键id
-            group.setId(mysql_insert_id(mysql.getConnection()));
+            group.setId(mysql_insert_id(mysql->getConnection()));
 
             return true;
         }
@@ -32,10 +32,10 @@ void GroupModel::addGroup(int userid, int groupid, string role)
     sprintf(sql, "insert into groupuser(groupid, userid, grouprole) values('%d', '%d', '%s')", groupid, userid, role.c_str());
 
     // 更新数据库
-    MySQL mysql;
-    if(mysql.connect())
+    auto mysql = ConnectionPool::getInstance()->getConnection();
+    if(mysql != nullptr)
     {
-        mysql.update(sql);
+        mysql->update(sql);
     }    
 }
 
@@ -49,10 +49,10 @@ vector<Group> GroupModel::queryGroups(int userid)
 
     vector<Group> vec;
     // 查询数据库
-    MySQL mysql;
-    if(mysql.connect())
+    auto mysql = ConnectionPool::getInstance()->getConnection();
+    if(mysql != nullptr)
     {
-        MYSQL_RES* res = mysql.query(sql);
+        MYSQL_RES* res = mysql->query(sql);
         if(res != nullptr)
         {
             MYSQL_ROW row;
@@ -72,7 +72,7 @@ vector<Group> GroupModel::queryGroups(int userid)
         sprintf(sql, "select a.id, a.name, a.state, b.grouprole from user a inner join \
         groupuser b on a.id = b.userid where b.groupid = %d", group.getId());
 
-        MYSQL_RES* res = mysql.query(sql);
+        MYSQL_RES* res = mysql->query(sql);
         if(res != nullptr)
         {
             MYSQL_ROW row;
@@ -96,10 +96,10 @@ vector<int> GroupModel::queryGroupUsers(int userid, int groupid)
 
     vector<int> vec;
     // 查询数据库
-    MySQL mysql;
-    if(mysql.connect())
+    auto mysql = ConnectionPool::getInstance()->getConnection();
+    if(mysql != nullptr)
     {
-        MYSQL_RES* res = mysql.query(sql);
+        MYSQL_RES* res = mysql->query(sql);
         if(res != nullptr)
         {
             MYSQL_ROW row;

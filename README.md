@@ -3,12 +3,14 @@
 # clusterchatserver
 
 基于muduo网络库实现的集群聊天服务器
+
 **分支main**:使用了数据库连接池，提高数据库访问效率
+
 **分支version-0.1.0**：未使用数据库连接池版本
 
 # 使用说明
 
-运行 [autobuild.sh](https://github.com/xiaoyou137/clusterchatserver/blob/version-0.1.0/autobuild.sh) ，可执行文件生成在bin目录下
+运行 [autobuild.sh](https://github.com/xiaoyou137/clusterchatserver/blob/main/autobuild.sh) ，可执行文件生成在bin目录下
 
 # 功能设计实现
 

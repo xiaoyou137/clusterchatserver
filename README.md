@@ -32,4 +32,4 @@
 
 # 关键技术点
 
-muduo网络库编程、mysql数据库编程、hiredis编程、json序列化与反序列化、C++11多线程编程、线程互斥、unordered_map关联容器、观察者模式、单例模式
+muduo网络库编程、mysql数据库编程、hiredis编程、json序列化与反序列化、C++11多线程编程、线程互斥、函数对象和绑定器、unordered_map关联容器、观察者模式、单例模式
